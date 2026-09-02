@@ -22,11 +22,12 @@ const CLIENT_IDS = {
   'nitinmendiratta.github.io': '2780a56d9afe4f13b296376b7dbea070',
   localhost: 'db47fb56205a404b8a62e0c3d6c9b626',
   '127.0.0.1': 'db47fb56205a404b8a62e0c3d6c9b626',
-  // git.corp.adobe.com Pages (internal-only hosting for Adobe-enterprise testing) — needs its OWN
-  // credential registered with Application Domain "git.corp.adobe.com" at
-  // https://www.adobe.com/go/dcsdks_credentials. Paste the real id below once created; until then
-  // this falls through to the github.io default and shows "File preview not available" on this host.
-  'git.corp.adobe.com': '',
+  // git.corp.adobe.com Pages (internal-only hosting for Adobe-enterprise testing).
+  'git.corp.adobe.com': '161ce6779fb24b019f0872b360c1a653',
+  // adobe.github.io Pages — the future public home once this project moves to github.com/adobe
+  // per the Open Source Advisory Board process (repo path served at adobe.github.io/<repo-name>/,
+  // but the CREDENTIAL is keyed on the hostname alone, so this covers any repo under that org).
+  'adobe.github.io': 'cba597bb5c9549d2a977a0d328d25216',
 };
 const CLIENT_ID = CLIENT_IDS[location.hostname] || CLIENT_IDS['nitinmendiratta.github.io'];
 const SAMPLE_PDF = 'https://acrobatservices.adobe.com/view-sdk-demo/PDFs/Bodea Brochure.pdf';
