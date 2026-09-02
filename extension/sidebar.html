@@ -42,38 +42,32 @@
 
       <div class="form-group composer">
         <div class="label-with-button">
-          <label for="userPromptText">Message&nbsp;
-            <button id="micBtn" title="Start Gemini Live">
-              <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                <path
-                  d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-              </svg>
-              <svg class="stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
-                <path d="M6 6h12v12H6z" />
-              </svg>
-            </button>
-          </label>
+          <label for="userPromptText">Message</label>
           <button id="advancedBtn" title="Advanced features" popovertarget="advancedSection" class="icon-btn">⋮</button>
         </div>
         <textarea id="userPromptText"></textarea>
       </div>
 
-      <!-- Provider/model selection is localStorage-driven, not a visible picker: on load, initGenAI()
-           in sidebar.js reads localStorage.aiProvider (+ its credentials) and uses whatever's already
-           configured there. Judges use the "Set Gemini API key" button below for a fresh start; a
-           Gateway (or Ollama) provider is configured via the console — see .env.json.example and the
-           comment above initGenAI() in sidebar.js. -->
+      <!-- Gateway config: any OpenAI-compatible endpoint (an internal LLM gateway, OpenAI,
+           OpenRouter, a local LiteLLM proxy, etc.), typed in here — never hardcoded — and written to
+           the SAME localStorage keys initGenAI() reads (see .env.json.example and the comment above
+           initGenAI() in sidebar.js). Saving switches localStorage.aiProvider to 'gateway' and
+           reloads the panel so it takes effect immediately. -->
       <dialog id="advancedSection" popover autofocus>
-        <div class="menu-label">Gemini Model</div>
+        <div class="menu-label">Gateway (OpenAI-compatible)</div>
         <label class="model-option">
-          <input type="radio" name="model" value="gemini-3.6-flash">
-          <span>Gemini 3.6 Flash</span>
+          <span>Base URL</span>
+          <input type="text" id="gatewayBaseUrlInput" placeholder="https://your-gateway.example.com">
         </label>
         <label class="model-option">
-          <input type="radio" name="model" value="gemini-3.1-flash-lite-preview">
-          <span>Gemini 3.1 Flash-Lite Preview</span>
+          <span>API key</span>
+          <input type="password" id="gatewayKeyInput" placeholder="sk-...">
         </label>
+        <label class="model-option">
+          <span>Model</span>
+          <input type="text" id="gatewayModelInput" placeholder="e.g. gpt-4o">
+        </label>
+        <button id="gatewaySaveBtn" class="secondary">Save &amp; reload</button>
       </dialog>
 
       <div class="form-group">

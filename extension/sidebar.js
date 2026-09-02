@@ -6,7 +6,6 @@
 import { GeminiProvider } from './gemini-provider.js';
 import { OllamaProvider } from './ollama-provider.js';
 import { GatewayProvider } from './gateway-provider.js';
-import { initGeminiLive } from './gemini-live.js';
 import { appendChatEvent, clearChat, showTypingIndicator, hideTypingIndicator } from './chat-ui.js';
 import { hasA2ui, stripA2ui, renderA2ui, renderChoice, parseNeedsChoice, renderReview, parseNeedsReview, toResultText, A2UI_INSTRUCTION } from './a2ui-chat.js';
 
@@ -27,7 +26,6 @@ const resetBtn = document.getElementById('resetBtn');
 const apiKeyBtn = document.getElementById('apiKeyBtn');
 const promptResults = document.getElementById('promptResults');
 const advancedSection = document.getElementById('advancedSection');
-const micBtn = document.getElementById('micBtn');
 
 // Debug mode: with ?debug=true on the panel URL (or debug flag in localStorage), reveal the
 // original inspector UI — the registered-tools table, the manual Tool dropdown + Execute, the raw
@@ -225,21 +223,21 @@ function activeModel() {
   return localStorage.aiProvider === 'ollama' ? localStorage.ollamaModel : localStorage.model;
 }
 
-document.querySelectorAll('input[name="model"]').forEach((radio) => {
-  radio.onclick = () => {
-    localStorage.model = radio.value;
-    chat = undefined;
-    advancedSection.hidePopover();
-  };
-});
-// Sync the radios' checked state once localStorage.model has its default seeded — NOT a blocking
-// top-level await (that would delay attaching promptBtn.onclick/Enter below, recreating the exact
-// "first click does nothing" bug this file just fixed). Click handlers above are already live.
-initGenAIPromise.then(() => {
-  document.querySelectorAll('input[name="model"]').forEach((radio) => {
-    radio.checked = radio.value === localStorage.model;
-  });
-});
+// Gateway config fields — never prefilled/hardcoded from the codebase; only what the user actually
+// types and saves here ends up in localStorage. Save & reload writes all three values PLUS switches
+// localStorage.aiProvider to 'gateway', then reloads the panel so initGenAI() picks them up
+// immediately — no separate radio/step needed.
+const gatewayBaseUrlInput = document.getElementById('gatewayBaseUrlInput');
+const gatewayKeyInput = document.getElementById('gatewayKeyInput');
+const gatewayModelInput = document.getElementById('gatewayModelInput');
+const gatewaySaveBtn = document.getElementById('gatewaySaveBtn');
+gatewaySaveBtn.onclick = () => {
+  localStorage.gatewayBaseUrl = gatewayBaseUrlInput.value.trim();
+  localStorage.gatewayKey = gatewayKeyInput.value.trim();
+  localStorage.gatewayModel = gatewayModelInput.value.trim();
+  localStorage.aiProvider = 'gateway';
+  location.reload();
+};
 
 async function suggestUserPrompt() {
   // Disabled: this auto-generates a demo suggestion by calling the model on every tool-discovery /
@@ -514,17 +512,6 @@ function updateDefaultValueForInputArgs() {
   const template = generateTemplateFromSchema(JSON.parse(inputSchema));
   inputArgsText.value = JSON.stringify(template, '', ' ');
 }
-
-// Initialize Gemini Live
-initGeminiLive({
-  micBtn,
-  apiKeyBtn,
-  getTools: () => currentTools,
-  executeTool,
-  logPrompt,
-  getFormattedDate,
-  addToTrace: (o) => trace.push(o),
-});
 
 // Utils
 
