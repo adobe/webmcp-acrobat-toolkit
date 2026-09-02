@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html>
+
+<head>
+  <title>Tool Inspector</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h2 class="app-title">Any Assistant</h2>
+
+    <!-- Debug: registered-tool inventory table. Hidden by default; shown when the panel is opened
+         with ?debug=true (see sidebar.js). `debug-only` marks it as revealable in debug mode. -->
+    <div class="hidden-section debug-only">
+      <h2 class="debug-header">WebMCP Tools</h2>
+      <div id="status"></div>
+      <div class="table-container">
+        <table id="resultsTable">
+          <thead>
+            <tr id="tableHeaderRow"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div id="copyToClipboard">
+          <span id="copyAsScriptToolConfig">📝 Copy as ScriptToolConfig</span>
+          <span id="copyAsJSON">📝 Copy as JSON</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-content chat-panel">
+
+      <!-- Styled chat thread (populated by chat-ui.js). -->
+      <div id="chatThread" class="chat-thread"></div>
+
+      <div class="form-group composer">
+        <div class="label-with-button">
+          <label for="userPromptText">Message&nbsp;
+            <button id="micBtn" title="Start Gemini Live">
+              <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                <path
+                  d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+              </svg>
+              <svg class="stop-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                <path d="M6 6h12v12H6z" />
+              </svg>
+            </button>
+          </label>
+          <button id="advancedBtn" title="Advanced features" popovertarget="advancedSection" class="icon-btn">⋮</button>
+        </div>
+        <textarea id="userPromptText"></textarea>
+      </div>
+
+      <!-- Provider/model selection is localStorage-driven, not a visible picker: on load, initGenAI()
+           in sidebar.js reads localStorage.aiProvider (+ its credentials) and uses whatever's already
+           configured there. Judges use the "Set Gemini API key" button below for a fresh start; a
+           Gateway (or Ollama) provider is configured via the console — see .env.json.example and the
+           comment above initGenAI() in sidebar.js. -->
+      <dialog id="advancedSection" popover autofocus>
+        <div class="menu-label">Gemini Model</div>
+        <label class="model-option">
+          <input type="radio" name="model" value="gemini-3.6-flash">
+          <span>Gemini 3.6 Flash</span>
+        </label>
+        <label class="model-option">
+          <input type="radio" name="model" value="gemini-3.1-flash-lite-preview">
+          <span>Gemini 3.1 Flash-Lite Preview</span>
+        </label>
+      </dialog>
+
+      <div class="form-group">
+        <button id="promptBtn" disabled>Send</button>
+        <!-- apiKeyBtn stays visible in the clean chat panel — with no key configured yet, it's the
+             only way to get started (e.g. a hackathon judge opening this fresh with an empty
+             localStorage). Reset/trace/manual-tool-exec are genuinely dev-only and stay hidden. -->
+        <button id="apiKeyBtn" class="secondary">Set Gemini API key</button>
+        <button id="resetBtn" class="secondary hidden-section debug-only" disabled>Reset</button>
+        <button id="traceBtn" class="secondary hidden-section debug-only">Copy trace</button>
+      </div>
+
+      <!-- Raw text trace — shown in debug mode alongside the styled chat. -->
+      <pre id="promptResults" class="hidden-section debug-only"></pre>
+
+      <!-- Debug: manual single-tool execution (Tool dropdown + args + Execute). Shown with
+           ?debug=true; the clean panel drives everything through the chat prompt otherwise. -->
+      <div class="hidden-section debug-only">
+        <h2 class="debug-header">Manual Tool Execution</h2>
+        <label for="toolNames">Tool</label>
+        <select id="toolNames"></select>
+        <label for="inputArgsText">Input Arguments</label>
+        <textarea id="inputArgsText">{"text": "hello world"}</textarea>
+        <button id="executeBtn">Execute Tool</button>
+        <pre id="toolResults"></pre>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="sidebar.js"></script>
+</body>
+
+</html>

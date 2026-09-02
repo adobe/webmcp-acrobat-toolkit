@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebMCP Redact Demo — PDF Embed + PDF.js</title>
+  <style>
+    :root { --bg:#0f1115; --panel:#171a21; --line:#262b36; --fg:#e7eaf0; --muted:#9aa4b2; --accent:#3b82f6; --danger:#ef4444; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--fg); }
+    header { padding:12px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; }
+    header h1 { font-size:15px; margin:0; font-weight:600; }
+    header .tag { font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
+    .upload-btn { font-size:12px; font-weight:600; color:#fff; background:var(--accent); border-radius:8px; padding:6px 12px; cursor:pointer; }
+    .upload-btn:hover { filter:brightness(1.1); }
+    .wrap { display:flex; height:calc(100vh - 49px); }
+    #adobe-dc-view { flex:1; min-width:0; background:#1b1e26; }
+    .side { width:340px; border-left:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; }
+    .side .box { padding:14px; border-bottom:1px solid var(--line); }
+    .side label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .row { display:flex; gap:8px; }
+    input[type=text] { flex:1; background:#0f1115; border:1px solid var(--line); color:var(--fg); border-radius:8px; padding:8px 10px; }
+    button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:8px 12px; cursor:pointer; font-weight:600; }
+    button.secondary { background:#232734; color:var(--fg); border:1px solid var(--line); }
+    button.danger { background:var(--danger); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .carousel { padding:14px; }
+    .carousel .card { background:#0f1115; border:1px solid var(--line); border-radius:10px; padding:14px; }
+    .carousel .hdr { font-weight:600; margin-bottom:4px; }
+    .carousel .detail { color:var(--muted); margin-bottom:12px; word-break:break-word; }
+    .carousel .nav { display:flex; gap:8px; margin-bottom:10px; }
+    .carousel .nav button { flex:1; }
+    .actions { display:flex; gap:8px; }
+    .actions .apply { flex:1; }
+    #log { flex:1; overflow:auto; padding:12px 14px; font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); }
+    #log .line { padding:2px 0; }
+    #log .you { color:var(--accent); }
+    #log .agent { color:#22c55e; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WebMCP Redact Demo</h1>
+    <span class="tag">PDF Embed API</span>
+    <span class="tag">PDF.js</span>
+    <span class="tag" id="mcpStatus">WebMCP: checking…</span>
+    <span style="flex:1"></span>
+    <label for="fileInput" class="upload-btn">⬆ Upload PDF</label>
+    <input id="fileInput" type="file" accept="application/pdf,.pdf" hidden />
+  </header>
+
+  <div class="wrap">
+    <div id="adobe-dc-view"></div>
+
+    <!-- The side panel is hidden: the extension's A2UI carousel drives everything. Add ?panel=1 to
+         the URL to show it again (standalone / no-extension use). Elements stay in the DOM so the
+         JS ($('kw'), $('log'), $('carousel')…) keeps working without null errors. -->
+    <aside class="side" id="sidePanel" style="display:none">
+      <div class="box">
+        <label>Ask to redact (natural language — same tools an AI agent calls)</label>
+        <div class="row">
+          <input id="kw" type="text" placeholder='e.g. "redact all PII" or "redact legacy"' />
+          <button id="findBtn">Redact</button>
+        </div>
+        <div class="hint" style="margin-top:6px;color:var(--muted);font-size:11px;">
+          Try: “redact all sensitive info”, “redact names”, “redact emails”, “redact legacy”
+        </div>
+      </div>
+
+      <div id="carousel" class="carousel hidden">
+        <div class="card">
+          <div class="hdr" id="cHdr">Mark 1 of N</div>
+          <div class="detail" id="cDetail">"text" — page P</div>
+          <div class="nav">
+            <button class="secondary" id="prevBtn">◀ Prev</button>
+            <button class="secondary" id="nextBtn">Next ▶</button>
+          </div>
+          <div class="actions">
+            <button class="apply" id="applyBtn">Apply redactions</button>
+            <button class="danger" id="cancelBtn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="log"></div>
+    </aside>
+  </div>
+
+  <!-- Public Adobe PDF Embed API SDK -->
+  <script src="https://acrobatservices.adobe.com/view-sdk/viewer.js"></script>
+  <!-- Public PDF.js (Mozilla, Apache-2.0) for text coordinates -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script type="module" src="./redact.js"></script>
+</body>
+</html>

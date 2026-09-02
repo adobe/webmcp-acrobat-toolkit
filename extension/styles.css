@@ -1,0 +1,775 @@
+/**
+ * Copyright 2026 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 10px;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 1.125rem;
+}
+
+button {
+  padding: 8px 10px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #1d4ed8;
+}
+
+#copyToClipboard span:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#copyToClipboard {
+  padding: 6px;
+}
+
+#promptResults,
+#toolResults {
+  background: #222;
+  color: #fff;
+  line-height: 2;
+  padding: 0 4px;
+  border-radius: 4px;
+  white-space: pre-line;
+  max-height: 200px;
+  overflow-y: scroll;
+  margin-bottom: 20px;
+}
+
+#status {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  min-height: 1rem;
+  color: red;
+}
+
+.table-container {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  overflow-y: scroll;
+  max-height: 400px;
+  display: block;
+}
+
+.table-container:has(tbody.prettify) {
+  max-height: fit-content;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.6875rem;
+  background: white;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:nth-child(even) {
+  background-color: #fcfcfc;
+}
+
+/* Ensure padding doesn't break width: 100% */
+* {
+  box-sizing: border-box;
+}
+
+.form-group {
+  margin-bottom: 10px;
+}
+
+.label-with-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  /* Matches th weight */
+  color: #333;
+}
+
+select,
+textarea,
+input {
+  width: 100%;
+  padding: 8px 10px;
+  /* Matches button padding logic */
+  border: 1px solid #e5e7eb;
+  /* Matches table border */
+  border-radius: 6px;
+  /* Matches button/container radius */
+  background-color: white;
+  font-family: monospace;
+  font-size: 0.8125rem;
+  color: #333;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+#userPromptText {
+  font-family: inherit;
+}
+
+/* Focus states matching the button blue */
+select:focus,
+textarea:focus,
+input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Custom styling for Select to remove default browser arrow and add a clean one */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  padding-right: 30px;
+  /* Make space for the arrow */
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+  /* Allow height resize only */
+  min-height: 70px;
+  line-height: 1.4;
+}
+
+/* Placeholder text color to match vibe */
+::placeholder {
+  color: #a3a3a3;
+}
+
+/* Disabled state matching the table header gray */
+select:disabled,
+textarea:disabled,
+button:disabled {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed;
+  outline: 1px solid #e5e7eb !important;
+  outline-offset: -1px !important;
+}
+
+.secondary {
+  color: #2563eb;
+  background-color: unset !important;
+  outline: 1px solid #2563eb;
+  outline-offset: -1px;
+}
+
+.secondary:hover {
+  color: #1d4ed8;
+  outline-color: #1d4ed8;
+}
+
+#toolResults {
+  white-space: break-spaces;
+  word-break: break-all;
+}
+
+tbody pre {
+  white-space: normal;
+}
+
+tbody.prettify pre {
+  white-space: pre-wrap;
+}
+
+.collapsible-header {
+  cursor: pointer;
+  display: flex;
+  user-select: none;
+}
+
+.collapsible-header::after {
+  content: '▾';
+  transition: transform 0.2s ease;
+  margin-left: 6px;
+}
+
+.collapsible-header.collapsed::after {
+  transform: rotate(-90deg);
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  width: 24px;
+  height: 24px;
+  color: #5f6368;
+  position: absolute;
+  right: 0;
+  top: -4px;
+}
+
+#micBtn:hover,
+#micBtn:focus-visible,
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background-color: #f3f4f6;
+  color: #333;
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.icon-btn svg {
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px rgba(66, 133, 244, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+  }
+}
+
+@keyframes listening-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 168, 83, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(52, 168, 83, 0.2);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 168, 83, 0);
+  }
+}
+
+@keyframes speaking-glow {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4);
+  }
+
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 12px rgba(234, 67, 53, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(234, 67, 53, 0);
+  }
+}
+
+#micBtn {
+  background: none;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  width: 24px;
+  height: 24px;
+  color: #5f6368;
+  position: absolute;
+  top: -4px;
+}
+
+#micBtn.active {
+  color: #ea4335;
+  animation: pulse-glow 2s infinite;
+}
+
+#micBtn.listening {
+  color: #34a853;
+  animation: listening-glow 1s infinite !important;
+}
+
+#micBtn.speaking {
+  color: #4285f4;
+  animation: speaking-glow 0.8s infinite !important;
+}
+
+.menu-label {
+  font-weight: bold;
+  padding: 8px 10px 4px 10px;
+  font-size: 0.625rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+dialog {
+  padding: 4px 0;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  background-color: white;
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 10%);
+}
+
+.model-option {
+  width: 100%;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  background: none;
+  border: none;
+  border-radius: 0;
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.model-option:hover {
+  background-color: #f3f4f6;
+}
+
+.model-option input[type='radio'] {
+  width: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #e5e5e5;
+  }
+
+  h2,
+  label {
+    color: #e5e5e5;
+  }
+
+  select,
+  textarea,
+  input {
+    background-color: #1e1e1e;
+    border-color: #404040;
+    color: #fff;
+  }
+
+  dialog {
+    background-color: #1e1e1e;
+    border-color: #404040;
+    color: #fff;
+  }
+
+  dialog::backdrop {
+    background: rgb(0 0 0 / 75%);
+  }
+
+  .model-option {
+    color: #d4d4d4;
+  }
+
+  .model-option:hover {
+    background-color: #262626;
+  }
+
+  .menu-label {
+    color: #a3a3a3;
+  }
+
+  select:focus,
+  textarea:focus,
+  input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23a3a3a3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  }
+
+  ::placeholder {
+    color: #6b7280;
+  }
+
+  .table-container {
+    border-color: #404040;
+  }
+
+  table {
+    background: #1e1e1e;
+  }
+
+  th,
+  td {
+    border-bottom-color: #404040;
+    color: #d4d4d4;
+  }
+
+  th {
+    background-color: #262626;
+    /* Darker header */
+    color: #fff;
+  }
+
+  tr:nth-child(even) {
+    background-color: #232323;
+    /* Subtle zebra striping */
+  }
+
+  button {
+    background-color: #2563eb;
+    /* Keep brand color, or shift to #3b82f6 */
+    color: #fff;
+  }
+
+  button:hover {
+    background-color: #3b82f6;
+  }
+
+  .secondary {
+    color: #60a5fa;
+    /* Lighter blue for text readability */
+    outline-color: #60a5fa;
+  }
+
+  .secondary:hover {
+    color: #93c5fd;
+    outline-color: #93c5fd;
+  }
+
+  select:disabled,
+  textarea:disabled,
+  button:disabled {
+    background-color: #262626 !important;
+    color: #525252 !important;
+    outline-color: #404040 !important;
+  }
+
+  #promptResults,
+  #toolResults {
+    background: #000;
+    border: 1px solid #333;
+  }
+
+  #status {
+    color: #f87171;
+    /* Lighter red for readability on dark */
+  }
+
+  #micBtn,
+  .icon-btn {
+    color: #bdc1c6;
+  }
+
+  #micBtn:hover,
+  #micBtn:focus-visible,
+  .icon-btn:hover,
+  .icon-btn:focus-visible {
+    background-color: #262626;
+    color: #fff;
+    outline-color: #3b82f6;
+  }
+}
+/* ============================================================
+   WebMCP demo chat thread — styled bubbles + tool cards
+   ============================================================ */
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 12px 4px;
+  margin: 8px 0;
+}
+
+.chat-row {
+  display: flex;
+  width: 100%;
+}
+.chat-row--user { justify-content: flex-end; }
+.chat-row--assistant,
+.chat-row--system,
+.chat-row--error { justify-content: flex-start; }
+
+.chat-bubble {
+  max-width: 84%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-bubble--user {
+  background: linear-gradient(135deg, #1a73e8, #4285f4);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.chat-bubble--assistant {
+  background: #f1f3f4;
+  color: #202124;
+  border-bottom-left-radius: 4px;
+}
+.chat-bubble--system {
+  background: transparent;
+  color: #80868b;
+  font-size: 12px;
+  font-style: italic;
+  padding: 2px 8px;
+}
+.chat-bubble--error {
+  background: #fce8e6;
+  color: #c5221f;
+  border-bottom-left-radius: 4px;
+}
+
+/* "Thinking…" indicator — three dots pulsing in sequence, shown between sending a prompt and the
+   next response/A2UI card being ready. */
+.chat-bubble--typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 16px;
+}
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+  animation: typing-dot-pulse 1.2s infinite ease-in-out;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing-dot-pulse {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+  30% { opacity: 1; transform: scale(1.3); }
+}
+
+/* Tool call / result cards */
+.tool-card {
+  align-self: flex-start;
+  max-width: 90%;
+  border: 1px solid #dadce0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 13px;
+}
+.tool-card--call { border-left: 3px solid #4285f4; }
+.tool-card--result { border-left: 3px solid #34a853; }
+.tool-card--error { border-left: 3px solid #ea4335; }
+
+.tool-card__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #3c4043;
+}
+.tool-card__icon { font-size: 14px; }
+.tool-card__args {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #5f6368;
+  overflow-x: auto;
+}
+.tool-card__result {
+  margin-top: 6px;
+  color: #202124;
+  line-height: 1.4;
+}
+
+@media (prefers-color-scheme: dark) {
+  .chat-bubble--assistant { background: #262626; color: #e8eaed; }
+  .chat-bubble--system { color: #9aa0a6; }
+  .chat-bubble--error { background: #3a1a17; color: #f28b82; }
+  .tool-card { background: #1e1e1e; border-color: #333; }
+  .tool-card__head { color: #e8eaed; }
+  .tool-card__args { background: #111; color: #bdc1c6; }
+  .tool-card__result { color: #e8eaed; }
+}
+
+/* ============================================================
+   Simplified chat panel layout (Acrobat Assistant demo)
+   ============================================================ */
+/* Hide sections we keep in the DOM (referenced by sidebar.js) but don't want visible. */
+.hidden-section { display: none !important; }
+
+/* Legacy raw-text trace <pre> — hidden in the clean chat, but shown in debug mode (?debug=true). */
+#promptResults { display: none !important; }
+body.debug-mode #promptResults { display: block !important; }
+
+/* Debug section headers (WebMCP Tools / Manual Tool Execution) shown only in debug mode. */
+.debug-header {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 16px 4px 6px;
+  color: #3c4043;
+}
+@media (prefers-color-scheme: dark) { .debug-header { color: #e8eaed; } }
+
+.app-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 12px 4px 8px;
+  color: #202124;
+}
+
+/* Make the chat panel fill the side panel and put the composer at the bottom. */
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+}
+/* In debug mode, let the page scroll so the debug sections below the chat aren't clipped. */
+body.debug-mode .chat-panel {
+  height: auto;
+}
+body.debug-mode .chat-panel .chat-thread {
+  max-height: 300px;
+}
+.chat-panel .chat-thread {
+  flex: 1 1 auto;
+  max-height: none;      /* override the default cap so it fills available height */
+}
+.chat-panel .composer {
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .app-title { color: #e8eaed; }
+}
+
+/* A2UI-rendered surfaces (agent-driven interactive UI in the chat thread). */
+.a2ui-host {
+  align-self: flex-start;
+  max-width: 92%;
+  margin: 8px 0;
+}
+.a2ui-host a2ui-surface {
+  display: block;
+  /* Card look: soft rounded panel with a subtle border + shadow (matches the Acrobat review card). */
+  background: #fff;
+  border: 1px solid #e3e6eb;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+  /* A2UI components theme via CSS vars. */
+  --a2ui-primary-color: #0f1115;
+  --a2ui-gap: 10px;
+  --a2ui-row-gap: 10px;
+  --a2ui-column-gap: 12px;
+  --a2ui-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+/* Rows (pager + actions) lay out inline with even spacing and vertical centering. min-height keeps
+   the row's vertical center fixed regardless of which children are present — e.g. the pager row on
+   the FIRST/LAST mark has only the "N of M" text (no Prev/Next button), and a bare Text's line-height
+   is shorter than a Button's padded height, so without a fixed row height it visibly sits higher than
+   on cards where a button is present too. */
+.a2ui-host a2ui-surface::part(row) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+}
+/* Pager row (‹ N of M ›): small, roughly-square icon buttons for the arrows, so a single glyph
+   doesn't render inside oversized button chrome. */
+.a2ui-host a2ui-surface::part(row) button,
+.a2ui-host a2ui-surface::part(button) {
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-width: 32px;
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Action row (Redact all / Don't redact): wider, comfortable pill buttons — the LAST row in the
+   card, so target it by position since A2UI doesn't expose per-button ids to CSS. */
+.a2ui-host a2ui-surface::part(row):last-of-type button {
+  padding: 9px 18px;
+  min-width: 0;
+  border-radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  .a2ui-host a2ui-surface {
+    background: #171a21;
+    border-color: #2a2f3a;
+    --a2ui-primary-color: #f4f5f7;
+    box-shadow: none;
+  }
+}
+
+/* A2UI selected-option highlight + locked state.
+   Buttons render in the <a2ui-surface> shadow DOM; A2UI exposes them for styling via CSS vars and
+   (where supported) ::part. We keep the selected one blue and dim the rest. */
+.a2ui-host.a2ui-locked { opacity: 1; }
+.a2ui-host .a2ui-selected,
+.a2ui-host a2ui-surface::part(button-a2ui-selected) {
+  background: #1a73e8 !important;
+  color: #fff !important;
+  border-color: #1a73e8 !important;
+}

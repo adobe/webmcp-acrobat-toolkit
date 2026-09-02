@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "postinstall": "npx esbuild ./node_modules/@google/genai/dist/web/index.mjs --bundle --format=esm --outfile=js-genai.js && npx esbuild ./a2ui-entry.mjs --bundle --format=esm --outfile=js-a2ui.js && rm -rf node_modules"
+  },
+  "dependencies": {
+    "@a2ui/lit": "^0.10.3",
+    "@a2ui/web_core": "^0.10.6",
+    "@google/genai": "^1.38.0",
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3"
+  }
+}
