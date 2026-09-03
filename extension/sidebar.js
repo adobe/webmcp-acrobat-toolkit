@@ -546,6 +546,15 @@ function getConfig() {
     + 'call get_document_text to read the open document, then call redact_regions with the matching '
     + 'items. For an EXACT word/phrase ("redact NITIN MENDIRATTA"), call find_and_redact directly. '
     + 'Do NOT reply in prose asking for clarification when a tool can get the answer — call the tool.',
+    // Form-fill flow (when the page exposes get_form_fields / fill_form).
+    'If the open PDF is a fillable FORM (tools get_form_fields / fill_form are available): to fill it, '
+    + 'FIRST call get_form_fields to learn the exact field names + labels, then call '
+    + 'fill_form({answers:{<exactFieldName>:<value>}}) mapping ONLY the values the user actually gave. '
+    + 'ANTI-FABRICATION (critical): NEVER invent, guess, or default a field value — no name, income, '
+    + 'address, SSN, phone, date, citizenship, or employment the user did not state. Leave every '
+    + 'unmentioned field blank/unchecked. If required fields are missing, fill what you have and then '
+    + 'ask the user for the rest in one short sentence — do not make them up. Use apply_form only when '
+    + 'the user confirms.',
     `Today's date is: ${getFormattedDate()}`,
     'CRITICAL RULE: Whenever the user provides a relative date (e.g., "next Monday", "tomorrow", "in 3 days"),  you must calculate the exact calendar date based on today\'s date.',
     // Keep replies clean and user-facing — the chat panel shows these verbatim.

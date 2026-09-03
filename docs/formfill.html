@@ -1,0 +1,90 @@
+<!doctype html>
+<!--
+ Copyright 2026 Adobe. All rights reserved.
+ This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License. You may obtain a copy
+ of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software distributed under
+ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ OF ANY KIND, either express or implied. See the License for the specific language
+ governing permissions and limitations under the License.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebMCP Form-Fill Demo — PDF Embed + pdf-lib</title>
+  <style>
+    :root { --bg:#0f1115; --panel:#171a21; --line:#262b36; --fg:#e7eaf0; --muted:#9aa4b2; --accent:#3b82f6; --danger:#ef4444; --ok:#22c55e; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--fg); }
+    header { padding:12px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; }
+    header h1 { font-size:15px; margin:0; font-weight:600; }
+    header .tag { font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
+    header a { color:var(--muted); text-decoration:none; font-size:12px; border:1px solid var(--line); border-radius:8px; padding:5px 10px; }
+    header a:hover { color:var(--fg); }
+    .upload-btn { font-size:12px; font-weight:600; color:#fff; background:var(--accent); border-radius:8px; padding:6px 12px; cursor:pointer; }
+    .upload-btn:hover { filter:brightness(1.1); }
+    .wrap { display:flex; height:calc(100vh - 49px); }
+    #adobe-dc-view { flex:1; min-width:0; background:#1b1e26; }
+    .side { width:340px; border-left:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; }
+    .side .box { padding:14px; border-bottom:1px solid var(--line); }
+    .side label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .row { display:flex; gap:8px; flex-wrap:wrap; }
+    button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:8px 12px; cursor:pointer; font-weight:600; }
+    button.secondary { background:#232734; color:var(--fg); border:1px solid var(--line); }
+    button.danger { background:var(--danger); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    #log { flex:1; overflow:auto; padding:12px 14px; font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted); }
+    #log .line { padding:2px 0; }
+    #log .you { color:var(--accent); }
+    #log .agent { color:var(--ok); }
+    .hint { margin-top:6px; color:var(--muted); font-size:11px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>WebMCP Form-Fill Demo</h1>
+    <span class="tag">PDF Embed API</span>
+    <span class="tag">pdf-lib</span>
+    <span class="tag" id="mcpStatus">WebMCP: checking…</span>
+    <span style="flex:1"></span>
+    <a href="./formfill-declarative.html">Declarative variant</a>
+    <a href="./index.html">↩ Redact demo</a>
+    <label for="fileInput" class="upload-btn">⬆ Upload PDF</label>
+    <input id="fileInput" type="file" accept="application/pdf,.pdf" hidden />
+  </header>
+
+  <div class="wrap">
+    <div id="adobe-dc-view"></div>
+
+    <!-- Hidden by default: the extension's chat + A2UI review card drive everything. Add ?panel=1 to
+         the URL to show this standalone panel (no-extension use). Elements stay in the DOM so the JS
+         keeps working without null errors. -->
+    <aside class="side" id="sidePanel" style="display:none">
+      <div class="box">
+        <label>Fill the open form (same tools an AI agent calls)</label>
+        <div class="row">
+          <button id="sampleBtn">Fill with sample data</button>
+          <button id="applyBtn2" class="secondary">Apply &amp; download</button>
+          <button id="clearBtn2" class="secondary">Clear</button>
+        </div>
+        <div class="hint">
+          With the extension: try “My name is Puneet Bajaj, email pbajaj0023@gmail.com, and I want a
+          $25,000 personal loan.” The agent fills ONLY what you say and leaves the rest blank.
+        </div>
+      </div>
+      <div id="log"></div>
+    </aside>
+  </div>
+
+  <!-- Public Adobe PDF Embed API SDK -->
+  <script src="https://acrobatservices.adobe.com/view-sdk/viewer.js"></script>
+  <!-- Public PDF.js (Mozilla, Apache-2.0) for page sizes + label extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Public pdf-lib (MIT) for AcroForm extract / fill / flatten -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script type="module" src="./formfill.js"></script>
+</body>
+</html>

@@ -42,8 +42,9 @@ const CLIENT_IDS = {
   'adobe.github.io': 'cba597bb5c9549d2a977a0d328d25216',
 };
 const CLIENT_ID = CLIENT_IDS[location.hostname] || CLIENT_IDS['nitinmendiratta.github.io'];
-const SAMPLE_PDF = 'https://acrobatservices.adobe.com/view-sdk-demo/PDFs/Bodea Brochure.pdf';
-const SAMPLE_NAME = 'Bodea Brochure.pdf';
+// Absolute URL (resolved against the page) — PDF Embed needs a full URL, not a relative path.
+const SAMPLE_PDF = new URL('./sample_mortgage_statement.pdf', location.href).href;
+const SAMPLE_NAME = 'sample_mortgage_statement.pdf';
 let FILE_ID = 'webmcp-redact-demo-doc'; // reassigned per loaded document
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -78,10 +79,26 @@ if (new URLSearchParams(location.search).get('panel') === '1') {
 // ============================================================================
 // 1. Load PDF Embed viewer + PDF.js (both on the same sample PDF)
 // ============================================================================
-document.addEventListener('adobe_dc_view_sdk.ready', initEmbed);
+// Start the viewer exactly once. The `adobe_dc_view_sdk.ready` EVENT is the true readiness signal and
+// it fires on every load INCLUDING reload — so it's the primary trigger. On a cached reload, however,
+// `window.AdobeDC` can be set BEFORE the SDK is ready (and the event may have already fired before this
+// deferred module ran), so calling previewFile immediately renders a blank iframe. Guard against
+// double-init and, when AdobeDC is already present, kick off on a short delay so the SDK has finished.
+let embedStarted = false;
+function startEmbed() { if (embedStarted) return; embedStarted = true; initEmbed(); }
+document.addEventListener('adobe_dc_view_sdk.ready', startEmbed);
+if (window.AdobeDC) setTimeout(startEmbed, 400);
 
-function initEmbed() {
-  loadPdf({ url: SAMPLE_PDF, name: SAMPLE_NAME }); // start with the bundled sample
+async function initEmbed() {
+  // Load the bundled sample as BYTES, not a URL: PDF Embed's URL path uses range requests and is
+  // unreliable on reload (the second previewFile can hang → blank viewer). Passing a resolved
+  // ArrayBuffer (the same path uploads use) renders consistently on first load AND reload.
+  try {
+    const bytes = await (await fetch(SAMPLE_PDF)).arrayBuffer();
+    loadPdf({ bytes, name: SAMPLE_NAME });
+  } catch (e) {
+    loadPdf({ url: SAMPLE_PDF, name: SAMPLE_NAME }); // fallback to URL if the fetch fails
+  }
 }
 
 /**
@@ -96,12 +113,17 @@ async function loadPdf(src) {
   FILE_ID = fileId;
 
   // --- PDF Embed viewer ---
-  // A FRESH AdobeDC.View per load: reusing one instance for a second previewFile() throws a mobx
-  // "changing observed observable outside actions" error (the SDK's store isn't reset between
-  // previews). Clearing the container div + new View avoids it.
+  // A FRESH AdobeDC.View targeting a FRESH inner div (unique id) per load. Reusing the same divId for
+  // a repeat previewFile() leaves the SDK bound to the old (now-replaced) node, so on reload the new
+  // preview never renders → blank viewer. Giving each load its own inner div (same pattern the
+  // form-fill page uses, which reloads cleanly) avoids that.
   const container = document.getElementById('adobe-dc-view');
   if (container) container.replaceChildren();
-  const dcView = new AdobeDC.View({ clientId: CLIENT_ID, divId: 'adobe-dc-view' });
+  const inner = document.createElement('div');
+  inner.id = `dcv-${fileId}`;
+  inner.style.height = '100%';
+  if (container) container.appendChild(inner);
+  const dcView = new AdobeDC.View({ clientId: CLIENT_ID, divId: inner.id });
   const content = src.bytes
     ? { promise: Promise.resolve(src.bytes) } // uploaded: pass the ArrayBuffer
     : { location: { url: src.url } };         // sample: pass the URL
@@ -109,10 +131,20 @@ async function loadPdf(src) {
     { content, metaData: { fileName: src.name, id: fileId } },
     { enableAnnotationAPIs: true, includePDFAnnotations: true, showDownloadPDF: true },
   );
-  preview.then(async (adobeViewer) => {
+  // Race Embed against a timeout. Embed's repeat previewFile() can hang on reload (leaving a blank
+  // viewer); if it does, render the pages read-only via PDF.js so the user still SEES the PDF instead
+  // of a black screen. Redaction needs Embed's annotation APIs, so in the fallback the tools are inert
+  // until a fresh (hard) reload gets Embed to load — but the document is at least visible.
+  Promise.race([
+    preview,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('embed-timeout')), 6000)),
+  ]).then(async (adobeViewer) => {
     viewerApis = await adobeViewer.getAPIs();
     annotationManager = await adobeViewer.getAnnotationManager();
     log(`PDF Embed viewer ready: ${src.name}`);
+  }).catch(async () => {
+    log('PDF Embed did not load (reload can stall it) — showing a read-only preview via PDF.js.');
+    try { await renderWithPdfJs(src, container); } catch (e) { log(`PDF.js preview failed: ${e.message}`); }
   });
 
   // --- PDF.js (same bytes/url) for text coordinates ---
@@ -129,6 +161,25 @@ async function loadPdf(src) {
     log(`PDF.js loaded ${pdfDoc.numPages} pages (for coordinates).`);
   } catch (e) {
     log(`PDF.js load failed: ${e.message}`);
+  }
+}
+
+// Read-only fallback viewer: render the PDF's pages to canvases via PDF.js when PDF Embed stalls.
+async function renderWithPdfJs(src, container) {
+  if (!container) return;
+  container.replaceChildren();
+  container.style.overflow = 'auto';
+  container.style.textAlign = 'center';
+  const docSrc = src.bytes ? { data: src.bytes.slice(0) } : { url: src.url };
+  const doc = await pdfjsLib.getDocument(docSrc).promise;
+  for (let p = 1; p <= doc.numPages; p += 1) {
+    const page = await doc.getPage(p); // eslint-disable-line no-await-in-loop
+    const viewport = page.getViewport({ scale: 1.3 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    canvas.style.cssText = 'max-width:96%;margin:10px auto;display:block;box-shadow:0 2px 12px rgba(0,0,0,.5);border-radius:4px';
+    container.appendChild(canvas);
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise; // eslint-disable-line no-await-in-loop
   }
 }
 
