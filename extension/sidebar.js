@@ -231,13 +231,22 @@ const gatewayBaseUrlInput = document.getElementById('gatewayBaseUrlInput');
 const gatewayKeyInput = document.getElementById('gatewayKeyInput');
 const gatewayModelInput = document.getElementById('gatewayModelInput');
 const gatewaySaveBtn = document.getElementById('gatewaySaveBtn');
-gatewaySaveBtn.onclick = () => {
+gatewaySaveBtn.onclick = async () => {
   localStorage.gatewayBaseUrl = gatewayBaseUrlInput.value.trim();
   localStorage.gatewayKey = gatewayKeyInput.value.trim();
   localStorage.gatewayModel = gatewayModelInput.value.trim();
   localStorage.aiProvider = 'gateway';
-  location.reload();
+  // Re-initialize the provider IN PLACE rather than location.reload(): reload is unreliable inside a
+  // Chrome side panel (values save but the panel never re-runs initGenAI, so Send stays disabled).
+  // initGenAI() re-reads localStorage, builds the GatewayProvider, and enables Send immediately.
+  await initGenAI();
+  try { document.getElementById('advancedSection')?.hidePopover?.(); } catch { /* popover optional */ }
 };
+
+// Prefill the gateway fields with any saved values so the form reflects the current config.
+if (gatewayBaseUrlInput) gatewayBaseUrlInput.value = localStorage.gatewayBaseUrl || '';
+if (gatewayKeyInput) gatewayKeyInput.value = localStorage.gatewayKey || '';
+if (gatewayModelInput) gatewayModelInput.value = localStorage.gatewayModel || '';
 
 async function suggestUserPrompt() {
   // Disabled: this auto-generates a demo suggestion by calling the model on every tool-discovery /
