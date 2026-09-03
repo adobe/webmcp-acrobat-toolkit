@@ -299,9 +299,13 @@ function buildA2uiFromReview(review, index) {
     { id: 'b-apply', component: 'Button', child: 't-apply', variant: 'primary',
       action: { event: { name: review.applyTool, context: { __review__: 'apply' } } } },
     { id: 't-apply', component: 'Text', text: L.apply || `Redact ${total || 'all'}` },
-    { id: 'b-download', component: 'Button', child: 't-download',
-      action: { event: { name: review.downloadTool, context: { __review__: 'download' } } } },
-    { id: 't-download', component: 'Text', text: L.download || 'Apply & download' },
+    // Only DEFINE the download button when a downloadTool exists — otherwise its action name is
+    // undefined and the A2UI catalog rejects the Button ("Invalid input"), failing the whole card.
+    ...(review.downloadTool ? [
+      { id: 'b-download', component: 'Button', child: 't-download',
+        action: { event: { name: review.downloadTool, context: { __review__: 'download' } } } },
+      { id: 't-download', component: 'Text', text: L.download || 'Apply & download' },
+    ] : []),
     { id: 'b-skip', component: 'Button', child: 't-skip',
       action: { event: { name: review.skipTool || review.cancelTool, context: { __review__: review.skipTool ? 'skip' : 'cancel' } } } },
     { id: 't-skip', component: 'Text', text: L.skip || "Don't redact this" },
