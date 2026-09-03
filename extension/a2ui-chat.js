@@ -373,8 +373,9 @@ export function renderReview(review, chatRoot, onAction, onNavigate, onSkip) {
         return;
       }
       // Terminal actions: apply / download / cancel. All three hand off to the agent and close the card.
+      // (displayLabel is the callback's own param — reuse it here, don't redeclare it.)
       const L = review.labels || {};
-      let instruction; let displayLabel;
+      let instruction;
       if (kind === 'download') {
         instruction = `Apply and download by calling ${action.name}.`;
         displayLabel = L.download || 'Apply & download';
