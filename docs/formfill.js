@@ -460,7 +460,7 @@ function registerWebMcp() {
 // 6. Standalone panel (no-agent path) — a "fill with sample data" convenience
 // ============================================================================
 const SAMPLE_ANSWERS = {
-  full_name: 'Puneet Bajaj', email: 'pbajaj0023@gmail.com', phone: '408-555-0199',
+  full_name: 'Jane Doe', email: 'jane.doe@example.com', phone: '408-555-0199',
   employment_status: 'Employed', annual_income: '145000', loan_amount: '25000',
   loan_type: 'Personal', us_citizen: true,
 };

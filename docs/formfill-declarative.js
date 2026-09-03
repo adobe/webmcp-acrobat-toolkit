@@ -610,7 +610,7 @@ function registerWebMcp() {
 // ============================================================================
 // 6. Standalone panel buttons
 // ============================================================================
-const SAMPLE_ANSWERS = { full_name: 'Puneet Bajaj', email: 'pbajaj0023@gmail.com', phone: '408-555-0199', employment_status: 'Employed', annual_income: '145000', loan_amount: '25000', loan_type: 'Personal', us_citizen: true };
+const SAMPLE_ANSWERS = { full_name: 'Jane Doe', email: 'jane.doe@example.com', phone: '408-555-0199', employment_status: 'Employed', annual_income: '145000', loan_amount: '25000', loan_type: 'Personal', us_citizen: true };
 function wirePanel() {
   // The control panel is hidden by default (the demo is just the PDF; drive it from the extension).
   // ?panel=1 shows it for standalone/no-extension use.

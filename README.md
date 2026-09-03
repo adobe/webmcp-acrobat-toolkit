@@ -42,7 +42,7 @@ python3 -m http.server 8080
 ```
 
 With the extension loaded and its side panel open on `formfill.html`, try:
-_"My name is Puneet Bajaj, email pbajaj0023@gmail.com, and I'd like a $25,000 personal loan."_ —
+_"My name is Jane Doe, email jane.doe@example.com, and I'd like a $25,000 personal loan."_ —
 the agent calls `get_form_fields` then `fill_form`, the viewer shows the form filling in, and it
 leaves every field you did not mention blank (it will not invent a value). Confirm to `apply_form`
 and download the flattened PDF. Append `?panel=1` to either page to drive it without the extension.
