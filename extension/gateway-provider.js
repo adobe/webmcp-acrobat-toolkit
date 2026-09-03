@@ -79,8 +79,14 @@ class GatewayChat extends Chat {
     // leave a tool_call unanswered (the extension shows the picker instead of feeding a result back),
     // so on the next turn — whether it's tool results OR a plain user message (Apply/Cancel click) —
     // we first satisfy any pending tool_calls, then append the actual turn.
+    // Only tool_calls that have NOT already been answered by an existing `tool` message are pending.
+    // Without this, a later plain-user turn re-derives the last assistant's tool_calls and pushes a
+    // SECOND `tool` reply for an already-answered call — a stray `tool` message with no preceding
+    // `tool_calls`, which the gateway rejects ("messages with role 'tool' must be a response to a
+    // preceding message with 'tool_calls'"). Common in the HITL/review flow (fill → card → user types).
+    const answeredIds = new Set(this.messages.filter((m) => m.role === 'tool' && m.tool_call_id).map((m) => m.tool_call_id));
     const lastAssistant = [...this.messages].reverse().find((m) => m.role === 'assistant' && m.tool_calls);
-    const pending = (lastAssistant?.tool_calls || []).slice();
+    const pending = (lastAssistant?.tool_calls || []).filter((tc) => !answeredIds.has(tc.id));
 
     if (Array.isArray(message)) {
       message.forEach((item) => {

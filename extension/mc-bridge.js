@@ -66,8 +66,11 @@
         return result; // sidebar's toResultText() unwraps { content:[{text}] } or strings.
       } catch (e) {
         lastErr = e;
-        // Only keep trying on the "bad arg shape" error; rethrow anything else immediately.
-        if (!/parse input arguments|invalid|argument/i.test(e?.message || '')) throw e;
+        // Only keep trying on arg-SHAPE errors; rethrow anything else immediately. Chrome builds vary
+        // in wording: "Failed to parse input arguments", "Failed to parse input string as JSON"
+        // (declarative form tools want a JSON string), "not of type 'RegisteredTool'", "N arguments
+        // required, but only 1 present". Match them all so we reach the variant this build accepts.
+        if (!/parse|invalid|argument|RegisteredTool|not of type/i.test(e?.message || '')) throw e;
       }
     }
     throw lastErr || new Error('executeTool failed');

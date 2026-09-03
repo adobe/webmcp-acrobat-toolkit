@@ -42,8 +42,9 @@ const CLIENT_IDS = {
   'adobe.github.io': 'cba597bb5c9549d2a977a0d328d25216',
 };
 const CLIENT_ID = CLIENT_IDS[location.hostname] || CLIENT_IDS['nitinmendiratta.github.io'];
-const SAMPLE_PDF = 'https://acrobatservices.adobe.com/view-sdk-demo/PDFs/Bodea Brochure.pdf';
-const SAMPLE_NAME = 'Bodea Brochure.pdf';
+// Absolute URL (resolved against the page) — PDF Embed needs a full URL, not a relative path.
+const SAMPLE_PDF = new URL('./sample_mortgage_statement.pdf', location.href).href;
+const SAMPLE_NAME = 'sample_mortgage_statement.pdf';
 let FILE_ID = 'webmcp-redact-demo-doc'; // reassigned per loaded document
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -78,7 +79,10 @@ if (new URLSearchParams(location.search).get('panel') === '1') {
 // ============================================================================
 // 1. Load PDF Embed viewer + PDF.js (both on the same sample PDF)
 // ============================================================================
-document.addEventListener('adobe_dc_view_sdk.ready', initEmbed);
+// This module is deferred, so the SDK's ready event may have ALREADY fired — if so window.AdobeDC is
+// set and we call initEmbed directly; otherwise wait for the event.
+if (window.AdobeDC) initEmbed();
+else document.addEventListener('adobe_dc_view_sdk.ready', initEmbed);
 
 function initEmbed() {
   loadPdf({ url: SAMPLE_PDF, name: SAMPLE_NAME }); // start with the bundled sample

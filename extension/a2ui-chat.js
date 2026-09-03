@@ -229,12 +229,17 @@ function buildA2uiFromReview(review, index) {
   const total = items.length;
   const it = items[index] || {};
 
+  // Optional per-tool label overrides so this ONE carousel serves any review tool (redact, form-fill,
+  // …). A host emits review.labels = { intro, apply, cancel, skip } to retitle the buttons/intro;
+  // absent → the redact defaults below. review.labels.skip === null hides the per-item skip button.
+  const L = review.labels || {};
+
   // Intro line — ALWAYS derived from the current (live) total, never the stale review.prompt set at
   // creation time: skip_mark shrinks review.items in place, and the intro must track that shrink
   // ("Marked 6..." must become "Marked 5..." after a skip), not freeze at the original count.
   const intro = total
-    ? `Marked ${total} item(s) for redaction. Review, then redact all — or cancel.`
-    : 'No marks to review.';
+    ? (L.intro || `Marked ${total} item(s) for redaction. Review, then redact all — or cancel.`)
+    : 'No items to review.';
   const term = it.text ? `“${it.text}”` : '';
 
   // Inline pager row:  Prev   N of M   Next  — flank a centered "index of total". No page-number
@@ -282,16 +287,27 @@ function buildA2uiFromReview(review, index) {
     // Three distinct actions: Apply (redact all), "Don't redact this" (skipTool — drop ONLY the mark
     // on screen, no chat bubble, carousel stays open), and Cancel (cancelTool — drop the WHOLE review,
     // no marks redacted). Skip falls back to acting like Cancel only if the host truly has no skipTool.
-    { id: 'actions', component: 'Row', children: ['b-apply', 'b-skip', 'b-cancel'], justify: 'start', align: 'center' },
+    // Show the per-item skip button only when the host offers one AND doesn't opt out (labels.skip:null).
+    // Optional secondary terminal action `downloadTool` (e.g. form-fill's "Apply & download"): lets a
+    // host offer Apply (commit, keep editing) AND Apply & download (finalize) as separate buttons.
+    { id: 'actions', component: 'Row',
+      children: ['b-apply',
+        ...(review.downloadTool ? ['b-download'] : []),
+        ...(review.skipTool && L.skip !== null ? ['b-skip'] : []),
+        'b-cancel'],
+      justify: 'start', align: 'center' },
     { id: 'b-apply', component: 'Button', child: 't-apply', variant: 'primary',
       action: { event: { name: review.applyTool, context: { __review__: 'apply' } } } },
-    { id: 't-apply', component: 'Text', text: `Redact ${total || 'all'}` },
+    { id: 't-apply', component: 'Text', text: L.apply || `Redact ${total || 'all'}` },
+    { id: 'b-download', component: 'Button', child: 't-download',
+      action: { event: { name: review.downloadTool, context: { __review__: 'download' } } } },
+    { id: 't-download', component: 'Text', text: L.download || 'Apply & download' },
     { id: 'b-skip', component: 'Button', child: 't-skip',
       action: { event: { name: review.skipTool || review.cancelTool, context: { __review__: review.skipTool ? 'skip' : 'cancel' } } } },
-    { id: 't-skip', component: 'Text', text: "Don't redact this" },
+    { id: 't-skip', component: 'Text', text: L.skip || "Don't redact this" },
     { id: 'b-cancel', component: 'Button', child: 't-cancel',
       action: { event: { name: review.cancelTool, context: { __review__: 'cancel' } } } },
-    { id: 't-cancel', component: 'Text', text: 'Cancel' },
+    { id: 't-cancel', component: 'Text', text: L.cancel || 'Cancel' },
   ];
   return [
     { version: 'v0.9', createSurface: { surfaceId: 'review', catalogId: basicCatalog.id } },
@@ -356,14 +372,22 @@ export function renderReview(review, chatRoot, onAction, onNavigate, onSkip) {
         render();
         return;
       }
-      const isApply = kind === 'apply';
-      const instruction = isApply
-        ? `Apply the redactions by calling ${action.name}.`
-        : `Cancel the redaction by calling ${action.name}.`;
-      // Apply/Cancel are terminal for this review card — remove it now rather than leaving a locked,
-      // disabled carousel sitting in the chat once the decision's been made and handed to the agent.
+      // Terminal actions: apply / download / cancel. All three hand off to the agent and close the card.
+      const L = review.labels || {};
+      let instruction; let displayLabel;
+      if (kind === 'download') {
+        instruction = `Apply and download by calling ${action.name}.`;
+        displayLabel = L.download || 'Apply & download';
+      } else if (kind === 'apply') {
+        instruction = `Apply by calling ${action.name}.`;
+        displayLabel = L.apply || 'Apply';
+      } else {
+        instruction = `Cancel by calling ${action.name}.`;
+        displayLabel = L.cancel || 'Cancel';
+      }
+      // Terminal for this review card — remove it now rather than leaving a locked, disabled carousel.
       if (host) { host.remove(); host = null; }
-      onAction(instruction, isApply ? 'Apply Redactions' : 'Cancel');
+      onAction(instruction, displayLabel);
     });
   };
 
