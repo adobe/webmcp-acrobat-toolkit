@@ -31,15 +31,11 @@
 // PORT, so localhost:<port> needs its OWN credential separate from the github.io one. Pick by host.
 // Create a second credential with Application Domain "localhost" and paste its id below.
 const CLIENT_IDS = {
-  'nitinmendiratta.github.io': '2780a56d9afe4f13b296376b7dbea070',
   localhost: 'db47fb56205a404b8a62e0c3d6c9b626',
   '127.0.0.1': 'db47fb56205a404b8a62e0c3d6c9b626',
   // git.corp.adobe.com Pages (internal-only hosting for Adobe-enterprise testing).
   'git.corp.adobe.com': '161ce6779fb24b019f0872b360c1a653',
-  // adobe.github.io Pages — the future public home once this project moves to github.com/adobe
-  // per the Open Source Advisory Board process (repo path served at adobe.github.io/<repo-name>/,
-  // but the CREDENTIAL is keyed on the hostname alone, so this covers any repo under that org).
-  'adobe.github.io': 'cba597bb5c9549d2a977a0d328d25216',
+  'opensource.adobe.com': 'e2de3676f66247d1b7b3e844e5db7423',
 };
 const CLIENT_ID = CLIENT_IDS[location.hostname] || CLIENT_IDS['nitinmendiratta.github.io'];
 // Absolute URL (resolved against the page) — PDF Embed needs a full URL, not a relative path.

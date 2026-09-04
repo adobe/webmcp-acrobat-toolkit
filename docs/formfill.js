@@ -38,6 +38,9 @@ const CLIENT_IDS = {
   '127.0.0.1': 'db47fb56205a404b8a62e0c3d6c9b626',
   'git.corp.adobe.com': '161ce6779fb24b019f0872b360c1a653',
   'adobe.github.io': 'cba597bb5c9549d2a977a0d328d25216',
+  // opensource.adobe.com — the actual domain github.com/adobe Pages sites are served from (the
+  // org has a custom domain, so it's opensource.adobe.com/<repo-name>/, not adobe.github.io/...).
+  'opensource.adobe.com': 'e2de3676f66247d1b7b3e844e5db7423',
 };
 const CLIENT_ID = CLIENT_IDS[location.hostname] || CLIENT_IDS['nitinmendiratta.github.io'];
 
