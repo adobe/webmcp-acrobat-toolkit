@@ -400,9 +400,13 @@ async function promptAI({ skipUserBubble = false } = {}) {
           const choice = parseNeedsChoice(result);
           const review = parseNeedsReview(result);
           if (choice) {
-            // The tool needs a user choice — render the picker in chat instead of feeding a pending
-            // result back to the model. The user's click drives the next turn (re-invoking the tool).
+            // The tool needs a user choice — render the picker in chat. We still record the tool's
+            // OWN result below (not skip it) — Gemini requires every function-call turn to be
+            // answered by a function-response before any later message, or the NEXT sendMessage()
+            // fails with 400 "Requests ending with a model turn are not supported." The user's click
+            // drives the actual next AGENT turn; this response just satisfies the API's turn contract.
             awaitingChoice = true;
+            toolResponses.push({ functionResponse: { name, response: { result } } });
             const chatRoot = document.getElementById('chatThread');
             renderChoice(choice, chatRoot, (agentMessage, displayLabel) => {
               appendChatEvent(`User prompt: "${displayLabel}"`);
@@ -411,7 +415,9 @@ async function promptAI({ skipUserBubble = false } = {}) {
             });
           } else if (review) {
             // Redact placed marks — show an Apply/Cancel review picker; the click applies or cancels.
+            // Same rule as above: record this tool's result so its function-call turn is answered.
             awaitingChoice = true;
+            toolResponses.push({ functionResponse: { name, response: { result } } });
             const chatRoot = document.getElementById('chatThread');
             if (review.prompt) appendChatEvent(`AI result: ${review.prompt}`);
             renderReview(review, chatRoot, (agentMessage, displayLabel) => {
@@ -454,8 +460,18 @@ async function promptAI({ skipUserBubble = false } = {}) {
         }
       }
 
-      // If we showed a picker, stop this turn and wait for the user's selection.
+      // If we showed a picker, stop acting on the model's turn and wait for the user's selection —
+      // but we STILL must answer every function call from this turn (including the one that
+      // triggered the picker, pushed above) before ending. Gemini rejects the NEXT sendMessage() with
+      // 400 "Requests ending with a model turn are not supported" if a function-call turn is ever
+      // left unanswered. Send the responses to keep the chat's history valid, but ignore whatever the
+      // model replies with here — the user interacts with the picker/review card, not a new turn.
       if (awaitingChoice) {
+        try {
+          await chat.sendMessage({ message: toolResponses, config: getConfig() });
+        } catch (e) {
+          console.warn('[promptAI] failed to close out the answered turn after showing a picker', e);
+        }
         finalResponseGiven = true;
         break;
       }
