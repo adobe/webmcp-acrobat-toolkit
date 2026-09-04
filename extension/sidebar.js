@@ -290,7 +290,10 @@ userPromptText.onkeydown = (event) => {
   }
 };
 
-promptBtn.onclick = () => sendPrompt();
+promptBtn.onclick = () => {
+  console.log('[DEBUG send] click fired', { disabled: promptBtn.disabled, value: userPromptText.value });
+  sendPrompt();
+};
 
 // Shared entry point for both the Send button and Enter-to-send. Awaits initGenAI() first — during
 // the brief startup window (before that resolves) promptBtn is still `disabled` and Enter's
@@ -298,10 +301,14 @@ promptBtn.onclick = () => sendPrompt();
 // load would otherwise see NOTHING happen on their first try. This queues that intent instead: it
 // resolves the instant init finishes and genAI/currentTools are actually ready, then proceeds.
 async function sendPrompt() {
+  console.log('[DEBUG send] sendPrompt() entered, awaiting initGenAIPromise...');
   await initGenAIPromise;
+  console.log('[DEBUG send] initGenAIPromise resolved, calling promptAI()');
   try {
     await promptAI();
+    console.log('[DEBUG send] promptAI() completed normally');
   } catch (error) {
+    console.log('[DEBUG send] promptAI() threw', error);
     trace.push({ error });
     logPrompt(`⚠️ Error: "${error}"`);
   }
@@ -375,6 +382,13 @@ async function promptAI({ skipUserBubble = false } = {}) {
       const toolResponses = [];
       let awaitingChoice = false;
       for (const { name, args } of functionCalls) {
+        // A single model turn can return MULTIPLE function calls (e.g. redact_regions AND
+        // apply_redactions back-to-back) — some models chain "find it, then apply it" as one batch.
+        // Once one of them needs a user review/choice, stop executing the REST of this batch
+        // immediately: otherwise a since-shown review card gets silently bypassed by the very next
+        // call in the same loop (e.g. apply_redactions running with zero marks actually confirmed,
+        // triggering an unwanted auto-download on the FIRST redact request).
+        if (awaitingChoice) break;
         const inputArgs = JSON.stringify(args);
         logPrompt(`AI calling tool "${name}" with ${inputArgs}`);
         try {
@@ -554,7 +568,10 @@ function getConfig() {
     + '("redact the bank address", "redact all names / emails / PII / sensitive info"), you MUST first '
     + 'call get_document_text to read the open document, then call redact_regions with the matching '
     + 'items. For an EXACT word/phrase ("redact NITIN MENDIRATTA"), call find_and_redact directly. '
-    + 'Do NOT reply in prose asking for clarification when a tool can get the answer — call the tool.',
+    + 'Do NOT reply in prose asking for clarification when a tool can get the answer — call the tool. '
+    + 'IMPORTANT: after redact_regions or find_and_redact places marks, STOP — do NOT call '
+    + 'apply_redactions in the same turn. The user reviews the marks in a card and applies or cancels '
+    + 'themselves; only call apply_redactions/cancel_redactions when the user explicitly confirms.',
     // Form-fill flow (when the page exposes get_form_fields / fill_form).
     'If the open PDF is a fillable FORM (tools get_form_fields / fill_form are available): to fill it, '
     + 'FIRST call get_form_fields to learn the exact field names + labels, then call '
