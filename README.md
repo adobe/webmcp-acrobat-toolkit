@@ -56,16 +56,7 @@ pdf‑lib writes each answer back **by field name** (no fuzzy guessing), and **A
 > **Requirements:** Google Chrome **149+** with `chrome://flags/#enable-webmcp-testing` enabled (for the WebMCP agent path). The demos also render fine on their own without it.
 
 ### 1. Run a demo
-PDF Embed credentials are locked to a domain, and this project's is registered for `localhost` — so open it via **`localhost`, never `127.0.0.1`** (Chrome treats them as different domains).
-
-```bash
-cd docs
-python3 -m http.server 8080
-# Redact:     http://localhost:8080/index.html
-# Form fill:  http://localhost:8080/formfill-declarative.html
-```
-
-Prefer the buttons over the chat? Add `?panel=1` to either URL to drive it without the extension.
+Open the live demo: https://opensource.adobe.com/webmcp-acrobat-toolkit/ — a sample PDF loads automatically, with a built-in keyword box for redaction that works standalone, no extension needed.
 
 ### 2. Load the extension
 <!-- 📸 Screenshot: chrome://extensions "Load unpacked" + the side panel open. → assets/extension.png -->
@@ -75,6 +66,11 @@ Prefer the buttons over the chat? Add `?panel=1` to either URL to drive it witho
 
 ### 3. Talk to it
 Type a request like the examples above and watch the agent work through the PDF. That's it. 🎉
+Try prompts like:
+"redact all names" or "redact the account numbers" — the agent finds matches, shows a review card to confirm before anything is applied, then redacts on approval
+"fill this loan application — my name is X, email Y" (on the form-fill demo page) — the agent fills only the stated fields, shows a review card, then applies and downloads on confirmation
+
+For form-filling, you can also upload your own PDF via the "Upload PDF" button — but it must be a fillable AcroForm (a PDF with real, named form fields), not a flat/scanned document. A sample loan-application form with AcroForm fields is loaded by default if you don't upload your own.
 
 ---
 
@@ -112,14 +108,11 @@ Human‑in‑the‑loop is built in: tools return a review card so you confirm b
 
 **Any OpenAI‑compatible gateway (optional):** OpenAI, OpenRouter, a local LiteLLM proxy, your own endpoint — open the side panel's **⋮ → Gateway**, enter the base URL, key, and model, and **Save**. No endpoint or key is ever hard‑coded; you can also drop them in `extension/.env.json` (see `.env.json.example`, gitignored).
 
-**Your own PDF Embed credential:** get a free one at <https://www.adobe.com/go/dcsdks_credentials> and add it to the `CLIENT_IDS` map at the top of `docs/redact.js` (and the form‑fill files).
-
 ---
 
 ## Good to know
 
 - 🔐 **Fully client‑side.** The page talks to no backend; the only network call is the extension → your chosen LLM. Your document stays in the browser.
-- 🌐 **`localhost`, not `127.0.0.1`** — the PDF Embed credential is domain‑locked.
 - 🧪 **It's a demo/toolkit**, not a production redaction guarantee — always eyeball the output before sharing a "redacted" file.
 
 ## License
