@@ -36,10 +36,18 @@ Hit **Apply** and the boxes are flattened into a downloadable PDF. PDF.js finds 
 ![The redacted PDF with the sensitive values blacked out](assets/redact-applied.png)
 
 ### ✍️ Form fill
-<!-- 📸 Screenshot: a form filling live in the viewer as the agent chats. → assets/formfill.png -->
-![Form-fill demo](assets/formfill.png)
 
-Describe yourself and watch the PDF populate live. pdf‑lib reads the form's fields and writes your answers back **by field name**, so there's no fuzzy guessing — and the agent is told, firmly, **never to invent a value you didn't provide**.
+> *"I want to apply for a $25,000 personal loan. I'm Jane Doe, jane.doe@example.com, and I'm employed."*
+
+Describe yourself and watch the PDF populate live. The agent fills **only** the fields you actually mentioned — notice *Date of birth* and the address stay blank — then hands you a review card. It's told, firmly, **never to invent a value you didn't provide.**
+
+<!-- 📸 assets/formfill-filled.png — form filled from the prompt + Apply / Apply & download review card -->
+![The agent fills only the fields you provided, then asks you to review](assets/formfill-filled.png)
+
+pdf‑lib writes each answer back **by field name** (no fuzzy guessing), and **Apply & download** flattens the completed form into a PDF.
+
+<!-- 📸 assets/formfill-downloaded.png — the completed, downloaded PDF -->
+![The completed loan application, downloaded as a flattened PDF](assets/formfill-downloaded.png)
 
 ---
 
