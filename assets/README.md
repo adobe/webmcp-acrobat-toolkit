@@ -5,7 +5,8 @@ Drop these files here and the top‑level `README.md` will pick them up automati
 | File | Shows | Suggested |
 |------|-------|-----------|
 | `hero.gif` | Short clip of the side‑panel chat driving a redaction or form‑fill end to end | ~1200px wide, < 10 MB, a few seconds |
-| `redact.png` | The redact page with red review marks + the chat panel | ~1400px wide PNG |
+| `redact-review.png` | Red review marks on the doc + the "Marked N region(s)" review card in the panel | ~1400px wide PNG |
+| `redact-applied.png` | The flattened result with sensitive values blacked out (+ "Done" in the chat) | ~1400px wide PNG |
 | `formfill.png` | A form filling live in the viewer as the agent chats | ~1400px wide PNG |
 | `extension.png` | `chrome://extensions` "Load unpacked" and/or the open side panel | ~1400px wide PNG |
 

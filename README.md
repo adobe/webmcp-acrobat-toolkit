@@ -22,10 +22,18 @@ Two demos, one extension:
 The magic: the same tools an AI agent calls are also wired to plain buttons, so every demo works with **or** without the extension.
 
 ### 🔒 Redact
-<!-- 📸 Screenshot: the redact page with red review marks + the chat panel. → assets/redact.png -->
-![Redact demo](assets/redact.png)
 
-Ask in plain language. The page uses PDF.js to locate the text, PDF Embed to draw the marks, and — on **Apply** — flattens the black boxes into a downloadable PDF. Nothing is sent anywhere.
+> *"I need to share this mortgage statement as proof of address, but please black out my loan number and account details first."*
+
+The agent reads the document, marks every match in red, and shows a review card — you step through and confirm before anything is changed.
+
+<!-- 📸 assets/redact-review.png — the red review marks + "Marked N region(s)" card in the panel -->
+![The agent marks sensitive regions and asks you to review](assets/redact-review.png)
+
+Hit **Apply** and the boxes are flattened into a downloadable PDF. PDF.js finds the text, PDF Embed draws the marks — all in your browser, nothing sent anywhere.
+
+<!-- 📸 assets/redact-applied.png — the flattened PDF with black boxes baked in -->
+![The redacted PDF with the sensitive values blacked out](assets/redact-applied.png)
 
 ### ✍️ Form fill
 <!-- 📸 Screenshot: a form filling live in the viewer as the agent chats. → assets/formfill.png -->
